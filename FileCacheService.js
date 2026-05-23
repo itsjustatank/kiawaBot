@@ -71,7 +71,13 @@ function buildFileProxy(absolutePath) {
 
 export function getFileCache(filePath) {
 	// turn any relative path like "something.json" into "C:\Users\anyia\path\to\kiawaBot\something.json"
-	const absolutePath = path.resolve(path.dirname("."), filePath);
+	const base = path.resolve(".");
+	const target = path.resolve(base, filePath);
+	const relative = path.relative(base, target);
+	if (relative.startsWith("..") || path.isAbsolute(relative)) {
+		throw new Error("Invalid file path");
+	}
+	const absolutePath = target;
 
 
 	if (!caches.has(absolutePath)) {

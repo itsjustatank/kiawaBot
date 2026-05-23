@@ -22,12 +22,19 @@ if (!fs.existsSync(dataDir)) {
 // Helper function to safely read JSON files
 function safeReadJSON(filePath, defaultValue = {}) {
     try {
-        if (!fs.existsSync(filePath)) {
-            console.log(`Web Server: Creating default ${filePath}...`);
-            jsonfile.writeFileSync(filePath, defaultValue, { spaces: 2, EOL: "\n" });
+        const base = path.resolve(__dirname);
+        const target = path.resolve(base, filePath);
+        const relative = path.relative(base, target);
+        if (relative.startsWith('..') || path.isAbsolute(relative)) {
+            console.error(`Web Server: Invalid file path`);
             return defaultValue;
         }
-        return jsonfile.readFileSync(filePath);
+        if (!fs.existsSync(target)) {
+            console.log(`Web Server: Creating default ${target}...`);
+            jsonfile.writeFileSync(target, defaultValue, { spaces: 2, EOL: "\n" });
+            return defaultValue;
+        }
+        return jsonfile.readFileSync(target);
     } catch (error) {
         console.error(`Web Server: Error reading ${filePath}:`, error);
         return defaultValue;
